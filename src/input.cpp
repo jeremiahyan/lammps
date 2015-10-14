@@ -105,7 +105,7 @@ Input::Input(LAMMPS *lmp, int argc, char **argv) : Pointers(lmp)
   // check for args "-var" and "-echo"
   // caller has already checked that sufficient arguments exist
 
-  int iarg = 0;
+  int iarg = 1;
   while (iarg < argc) {
     if (strcmp(argv[iarg],"-var") == 0 || strcmp(argv[iarg],"-v") == 0) {
       int jarg = iarg+3;
@@ -1699,7 +1699,7 @@ void Input::special_bonds()
 
 void Input::suffix()
 {
-  if (narg != 1) error->all(FLERR,"Illegal suffix command");
+  if (narg < 1) error->all(FLERR,"Illegal suffix command");
 
   if (strcmp(arg[0],"off") == 0) lmp->suffix_enable = 0;
   else if (strcmp(arg[0],"on") == 0) lmp->suffix_enable = 1;
@@ -1707,17 +1707,21 @@ void Input::suffix()
     lmp->suffix_enable = 1;
 
     delete [] lmp->suffix;
-    int n = strlen(arg[0]) + 1;
-    lmp->suffix = new char[n];
-    strcpy(lmp->suffix,arg[0]);
+    delete [] lmp->suffix2;
 
-    // set 2nd suffix = "omp" when suffix = "intel"
-    // but only if USER-OMP package is installed
-
-    if (strcmp(lmp->suffix,"intel") == 0 && modify->check_package("OMP")) {
-      delete [] lmp->suffix2;
-      lmp->suffix2 = new char[4];
-      strcpy(lmp->suffix2,"omp");
+    if (strcmp(arg[0],"hybrid") == 0) {
+      if (narg != 3) error->all(FLERR,"Illegal suffix command");
+      int n = strlen(arg[1]) + 1;
+      lmp->suffix = new char[n];
+      strcpy(lmp->suffix,arg[1]);
+      n = strlen(arg[2]) + 1;
+      lmp->suffix2 = new char[n];
+      strcpy(lmp->suffix2,arg[2]);
+    } else {
+      if (narg != 1) error->all(FLERR,"Illegal suffix command");
+      int n = strlen(arg[0]) + 1;
+      lmp->suffix = new char[n];
+      strcpy(lmp->suffix,arg[0]);
     }
   }
 }
