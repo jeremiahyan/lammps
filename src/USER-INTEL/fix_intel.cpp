@@ -178,6 +178,9 @@ FixIntel::FixIntel(LAMMPS *lmp, int narg, char **arg) :  Fix(lmp, narg, arg)
   // nomp is user setting, default = 0
   
   #if defined(_OPENMP)
+  #if defined(__INTEL_COMPILER)
+  kmp_set_blocktime(0);
+  #endif
   if (nomp != 0) {
     omp_set_num_threads(nomp);
     comm->nthreads = nomp;
@@ -661,7 +664,7 @@ int FixIntel::set_host_affinity(const int nomp)
   FILE *p;
   char cmd[512];
   char readbuf[INTEL_MAX_HOST_CORE_COUNT*5];
-  sprintf(cmd, "lscpu -p=cpu,core,socket | grep -v '#' |"
+  sprintf(cmd, "lscpu -p | grep -v '#' |"
 	  "sort -t, -k 3,3n -k 2,2n | awk -F, '{print $1}'");
   p = popen(cmd, "r");
   if (p == NULL) return -1;
